@@ -213,3 +213,165 @@ bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_
     return true;
 
 }
+
+/**
+ * Returns true if the DT Response packet is valid.
+ * 
+ * @param pkt The packet.
+ * @param n The size of the packet.
+ * @return True if the packet is valid.
+ * */
+bool dtResValid(uint8_t pkt[], size_t n)
+{
+    if (n < 13) {
+        return false;
+    }
+
+    if (dtPktMagicNo(pkt, n) != MAGIC_NO) {
+        return false;
+    }
+
+    if (dtPktType(pkt, n) != PACKET_RES) {
+        return false;
+    }
+
+    if (dtResYear(pkt, n) >= 2100) {
+        return false;
+    }
+
+    if (dtResMonth(pkt, n) < 1 ||
+        dtResMonth(pkt, n) > 12) {
+        return false;
+    }
+
+    if (dtResDay(pkt, n) < 1 ||
+        dtResDay(pkt, n) > 31) {
+        return false;
+    }
+
+    if (dtResHour(pkt, n) < 0 ||
+        dtResHour > 23) {
+        return false;
+    }
+
+    if (dtResMinute(pkt, n) < 0 ||
+        dtResMinute(pkt, n) > 59) {
+        return false;
+    }
+
+    if (dtResLength(pkt, n) + 13 != n) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Returns the language code in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @return The language code.
+ * */
+uint16_t dtResLangCode(uint8_t pkt[], size_t n)
+{
+    return ((pkt[4] << 8) | pkt[5]);
+}
+
+/**
+ * Returns the year defined in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @return The year.
+ * */
+uint16_t dtResYear(uint8_t pkt[], size_t n)
+{
+    return ((pkt[6] << 8) | pkt[7]);
+}
+
+/**
+ * Returns the month defined in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param The packet.
+ * @param The length of the packet.
+ * @return The month.
+ * */
+uint8_t dtResMonth(uint8_t pkt[], size_t n)
+{
+    return (pkt[8]);
+}
+
+/**
+ * Returns the day defined in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @return The day.
+ * */
+uint8_t dtResDay(uint8_t pkt[], size_t n)
+{
+    return (pkt[9]);
+}
+
+/**
+ * Returns the hour defined in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @return The hour.
+ * */
+uint8_t dtResHour(uint8_t pkt[], size_t n)
+{
+    return (pkt[10]);
+}
+
+/**
+ * Returns the minute defined in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @return The minute.
+ * */
+uint8_t dtResMinute(uint8_t pkt[], size_t n)
+{
+    return (pkt[11]);
+}
+
+/**
+ * Returns the length of the text in the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @return The length of the text.
+ * */
+uint8_t dtResLength(uint8_t pkt[], size_t n)
+{
+    return (pkt[12]);
+}
+
+/**
+ * Copies the text from the packet and puts it into the char array text.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * @param text The char array to store the text in.
+ * @param m The length of the char array.
+ * */
+void dtResText(uint8_t pkt[], size_t n, char text[], size_t m)
+{
+    uint8_t textLen = dtResLength(pkt, n);
+    for (int i = 0; i < textLen; i++) {
+        text[i] = pkt[13 + i];
+    }
+    text[textLen] = 0;
+}
+

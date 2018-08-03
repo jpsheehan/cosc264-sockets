@@ -26,6 +26,10 @@
 bool validLangCode(uint16_t langCode);
 bool validReqType(uint16_t reqType);
 
+// General packet functions
+uint16_t dtPktMagicNo(uint8_t pkt[], size_t n);
+uint16_t dtPktType(uint8_t pkt[], size_t n);
+
 // DT Request functions
 bool dtReq(uint8_t pkt[], size_t n, uint16_t reqType);
 uint16_t dtReqType(uint8_t pkt[], size_t n);
@@ -33,5 +37,14 @@ bool dtReqValid(uint8_t pkt[], size_t n);
 
 // DT Response functions
 bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute);
+bool dtResValid(uint8_t pkt[], size_t n);
+uint16_t dtResLangCode(uint8_t pkt[], size_t n);
+uint16_t dtResYear(uint8_t pkt[], size_t n);
+uint8_t dtResMonth(uint8_t pkt[], size_t n);
+uint8_t dtResDay(uint8_t pkt[], size_t n);
+uint8_t dtResHour(uint8_t pkt[], size_t n);
+uint8_t dtResMinute(uint8_t pkt[], size_t n);
+uint8_t dtResLength(uint8_t pkt[], size_t n);
+void dtResText(uint8_t pkt[], size_t n, char text[], size_t m);
 
 #endif
