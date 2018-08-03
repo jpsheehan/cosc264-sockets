@@ -23,13 +23,13 @@
 #define LANG_GER 0x0003
 
 // Helper functions
-bool validPkt(uint8_t  pkt[], size_t n);
 bool validLangCode(uint16_t langCode);
 bool validReqType(uint16_t reqType);
 
 // DT Request functions
 bool dtReq(uint8_t pkt[], size_t n, uint16_t reqType);
 uint16_t dtReqType(uint8_t pkt[], size_t n);
+bool dtReqValid(uint8_t pkt[], size_t n);
 
 // DT Response functions
 bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute);

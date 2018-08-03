@@ -51,38 +51,69 @@ bool dtReq(uint8_t pkt[], size_t n, uint16_t reqType)
 
 /**
  * Returns the request type of a DT Request packet.
+ * No checking is performed beforehand.
  * 
  * @param pkt An array of uint8 values making up the packet.
  * @param n The size of the array. Must be REQ_PKT_LEN.
- * @return The request type of the packet, or 0 for an error.
+ * @return The request type of the packet.
  * */
 uint16_t dtReqType(uint8_t pkt[], size_t n)
 {
-    if (n != REQ_PKT_LEN || !validPkt(pkt, n)) {
-        return 0x0000;
-    }
-
-    uint16_t reqType = (pkt[4] << 8) | pkt[5];
-
-    if (reqType != REQ_DATE || reqType != REQ_TIME) {
-        reqType = 0x0000;
-    }
-
-    return reqType;
+    return ((pkt[4] << 8) | pkt[5]);
 }
 
 /**
- * Checks the magic number of a packet.
+ * Returns true if the packet is a valid DT Request packet.
  * 
- * @param pkt The packet.
- * @param n The length of the packet.
+ * @param pkt A pointer to the packet.
+ * @param n The number of items in the packet.
+ * @return True if the packet is valid. False otherwise.
  * */
-bool validPkt(uint8_t  pkt[], size_t n)
+bool dtReqValid(uint8_t pkt[], size_t n)
 {
-    if (n < 2) {
+    if (n != REQ_PKT_LEN) {
         return false;
     }
-    return ((pkt[0] << 8) | pkt[1] == MAGIC_NO);
+
+    if (dtPktMagicNo(pkt, n) != MAGIC_NO) {
+        return false;
+    }
+
+    if (dtPktType(pkt, n) != PACKET_REQ) {
+        return false;
+    }
+
+    if (!validReqType(dtReqType(pkt, n))) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Returns the magic number from the packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The size of the packet.
+ * @return The magic number of the packet.
+ * */
+uint16_t dtPktMagicNo(uint8_t pkt[], size_t n)
+{
+    return ((pkt[0] << 8) | pkt[1]);
+}
+
+/**
+ * Returns the type of packet.
+ * No checking is done beforehand.
+ * 
+ * @param pkt The packet.
+ * @param n The size of the packet.
+ * @return The type of the packet.
+ * */
+uint16_t dtPktType(uint8_t pkt[], size_t n)
+{
+    return ((pkt[2] << 8) | pkt[3]);
 }
 
 /**
