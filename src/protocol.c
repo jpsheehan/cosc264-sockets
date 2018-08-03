@@ -364,11 +364,11 @@ uint8_t dtResLength(uint8_t pkt[], size_t n)
  * @param pkt The packet.
  * @param n The length of the packet.
  * @param text The char array to store the text in.
- * @param m The length of the char array.
+ * @param textLen A pointer where the length of the text is to be stored.
  * */
-void dtResText(uint8_t pkt[], size_t n, char text[], size_t m)
+void dtResText(uint8_t pkt[], size_t n, char text[], size_t* textLen)
 {
-    uint8_t textLen = dtResLength(pkt, n);
+    *textLen = dtResLength(pkt, n);
     for (int i = 0; i < textLen; i++) {
         text[i] = pkt[13 + i];
     }
