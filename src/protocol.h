@@ -10,6 +10,9 @@
 #define PACKET_REQ 0x0001
 #define PACKET_RES 0x0002
 
+#define MIN_PORT_NO 1024
+#define MAX_PORT_NO 64000
+
 #define REQ_DATE 0x0001
 #define REQ_TIME 0x0002
 #define REQ_PKT_LEN 6
