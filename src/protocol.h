@@ -34,12 +34,12 @@ uint16_t dtPktMagicNo(uint8_t pkt[], size_t n);
 uint16_t dtPktType(uint8_t pkt[], size_t n);
 
 // DT Request functions
-bool dtReq(uint8_t pkt[], size_t n, uint16_t reqType);
+size_t dtReq(uint8_t pkt[], size_t n, uint16_t reqType);
 uint16_t dtReqType(uint8_t pkt[], size_t n);
 bool dtReqValid(uint8_t pkt[], size_t n);
 
 // DT Response functions
-bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute);
+size_t dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute);
 bool dtResValid(uint8_t pkt[], size_t n);
 uint16_t dtResLangCode(uint8_t pkt[], size_t n);
 uint16_t dtResYear(uint8_t pkt[], size_t n);

@@ -28,9 +28,9 @@ const char* MONTHS[3][12] = {
  * @param pkt A pointer to the packet.
  * @param n The size of the array. Must be REQ_PKT_LEN.
  * @param reqType Must be REQ_DATE or REQ_TIME.
- * @return true if successful.
+ * @return The length of the packet.
  * */
-bool dtReq(uint8_t pkt[], size_t n, uint16_t reqType)
+size_t dtReq(uint8_t pkt[], size_t n, uint16_t reqType)
 {
 
     if (validReqType(reqType) && n == REQ_PKT_LEN) {
@@ -42,11 +42,11 @@ bool dtReq(uint8_t pkt[], size_t n, uint16_t reqType)
         pkt[4] = (uint8_t)(reqType >> 8);
         pkt[5] = (uint8_t)(reqType & 0xFF);
 
-        return true;
+        return n;
 
     }
 
-    return false;
+    return 0;
 }
 
 /**
@@ -152,14 +152,14 @@ bool validLangCode(uint16_t langCode)
  * @param day The day to return.
  * @param hour The hour to return.
  * @param minute The minute to return.
- * @return True if the packet was successfully constructed.
+ * @return The length of the packet.
  * */
-bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute)
+size_t dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute)
 {
 
     // check reqType, langCode and n
     if (!validReqType(reqType) || !validLangCode(langCode) || n != RES_PKT_LEN) {
-        return false;
+        return 0;
     }
 
     // write most of the data to the packet
@@ -196,7 +196,7 @@ bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_
     
     // an error occurred during sprintf
     if (length < 0) {
-        return false;
+        return 0;
     }
 
     // we ignore the null terminator
@@ -210,7 +210,7 @@ bool dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_
         pkt[13 + i] = text[i];
     }
 
-    return true;
+    return 13 + length;
 
 }
 
