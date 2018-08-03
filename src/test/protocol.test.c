@@ -165,67 +165,211 @@ int main(void)
 
     // ** dtRes **
     // create a packet with a size too small
+    size_t smallResPktLen = RES_PKT_LEN - 1;
+    uint8_t smallResPkt[smallResPktLen] = {0};
+    if (dtRes(smallResPkt, smallResPktLen, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) == smallResPktLen) {
+        failures++;
+        fail("dtRes", "n should be too small");
+    }
 
     // create a packet with a size too large
+    size_t largeResPktLen = RES_PKT_LEN + 1;
+    uint8_t largeResPkt[largeResPktLen] = {0};
+    if (dtRes(largeResPkt, largeResPktLen, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) == largeResPktLen) {
+        failures++;
+        fail("dtRes", "n should be too large");
+    }
 
     // create a packet with an invalid request type
+    uint8_t badReqTypeResPkt[RES_PKT_LEN] = {0};
+    if (dtRes(badReqTypeResPkt, RES_PKT_LEN, 0xBEEF, LANG_ENG, 2018, 6, 10, 12, 45) == RES_PKT_LEN) {
+        failures++;
+        fail("dtRes", "reqType should be invalid");
+    }
 
     // create a packet with an invalid language code
+    uint8_t badLangCodeResPkt[RES_PKT_LEN] = {0};
+    if (dtRes(badLangCodeResPkt, RES_PKT_LEN, REQ_TIME, 0xBEEF, 2018, 6, 10, 12, 45) == RES_PKT_LEN) {
+        failures++;
+        fail("dtRes", "langCode should be invalid");
+    }
 
     // create valid packets and check that the size returned is correct
+    uint8_t dateEngResPkt[RES_PKT_LEN] = {0};
+    if (dtRes(dateEngResPkt, RES_PKT_LEN, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) != 13 + 19 + 4 + 2 + 4) {
+        failures++;
+        fail("dtRes", "english date packet isn't the correct length");
+    }
+
+    uint8_t timeEngResPkt[RES_PKT_LEN] = {0};
+    if (dtRes(timeEngResPkt, RES_PKT_LEN, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) != 13 + 21 + 5) {
+        failures++;
+        fail("dtRes", "english time packet isn't the correct length");
+    }
 
     // ** dtResValid **
     // check with a packet that is too small
+    if (dtResValid(smallResPkt, smallResPktLen)) {
+        failures++;
+        fail("dtResValid", "n should be too small");
+    }
+
+    // check with a packet that is too large
+    if (dtResValid(largeResPkt, largeResPktLen)) {
+        failures++;
+        fail("dtResValid", "n should be too large");
+    }
 
     // check with a packet with an invalid magic number
+    timeEngResPkt[0] = 0xBE;
+    timeEngResPkt[1] = 0xEF;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "magic number should be invalid");
+    }
+    timeEngResPkt[0] = (uint8_t)(MAGIC_NO >> 8);
+    timeEngResPkt[1] = (uint8_t)(MAGIC_NO & 0xFF);
 
     // check with a packet with an invalid packet type
+    timeEngResPkt[2] = 0xBE;
+    timeEngResPkt[3] = 0xEF;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "packet type should be invalid");
+    }
+    timeEngResPkt[2] = (uint8_t)(PACKET_RES >> 8);
+    timeEngResPkt[3] = (uint8_t)(PACKET_RES & 0xFF);
 
     // check with a packet with an invalid year
+    timeEngResPkt[6] = 0xBE;
+    timeEngResPkt[7] = 0xEF;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "year should be invalid");
+    }
+    timeEngResPkt[6] = (uint8_t)(2018 >> 8);
+    timeEngResPkt[7] = (uint8_t)(2018 & 0xFF);
 
     // check with a packet with a month too small
+    timeEngResPkt[8] = 0;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "month should be too small");
+    }
 
     // check with a packet with a month too large
+    timeEngResPkt[8] = 13;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "month should be too large");
+    }
+    timeEngResPkt[8] = (uint8_t)(6);
 
     // check with a packet with a day too small
+    timeEngResPkt[9] = 0;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "day should be too small");
+    }
 
     // check with a packet with a day too large
-
-    // check with a packet with an hour too small
+    timeEngResPkt[9] = 32;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "day should be too large");
+    }
+    timeEngResPkt[9] = (uint8_t)(10);
 
     // check with a packet with an hour too large
-
-    // check with a packet with a minute too small
+    timeEngResPkt[10] = 24;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "hour should be too large");
+    }
+    timeEngResPkt[10] = (uint8_t)(12);
 
     // check with a packet with a minute too large
+    timeEngResPkt[11] = 60;
+    if (dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "minute should be too large");
+    }
+    timeEngResPkt[11] = (uint8_t)(45);
 
     // check with a packet with an invalid length
 
     // check with valid packets
+    if (!dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "english time packet should be valid");
+    }
+    
+    if (!dtResValid(dateEngResPkt, RES_PKT_LEN)) {
+        failures++;
+        fail("dtResValid", "english date packet should be valid");
+    }
 
     // ** dtResLangCode **
     // check that the lang code is extracted
+    if (!dtResLangCode(dateEngResPkt, RES_PKT_LEN) != LANG_ENG) {
+        failures++;
+        fail("dtResLangCode", "lang code is not extracted");
+    }
 
     // ** dtResYear **
     // check that the year is extracted
+    if (!dtResYear(dateEngResPkt, RES_PKT_LEN) != 2018) {
+        failures++;
+        fail("dtResYear", "year is not extracted");
+    }
 
     // ** dtResMonth **
     // check that the month is extracted
+    if (!dtResMonth(dateEngResPkt, RES_PKT_LEN) != 6) {
+        failures++;
+        fail("dtResMonth", "month is not extracted");
+    }
 
     // ** dtResDay **
     // check that the day is extracted
+    if (!dtResDay(dateEngResPkt, RES_PKT_LEN) != 10) {
+        failures++;
+        fail("dtResDay", "day is not extracted");
+    }
 
     // ** dtResHour **
     // check that the hour is extracted
+    if (!dtResHour(dateEngResPkt, RES_PKT_LEN) != 12) {
+        failures++;
+        fail("dtResHour", "hour is not extracted");
+    }
 
     // ** dtResMinute **
     // check that the minute is extracted
+    if (!dtResMinute(dateEngResPkt, RES_PKT_LEN) != 45) {
+        failures++;
+        fail("dtResMinute", "minute is not extracted");
+    }
 
     // ** dtResLength **
     // check that the length is extracted
+    if (!dtResLength(dateEngResPkt, RES_PKT_LEN) != 29) {
+        failures++;
+        fail("dtResLength", "length is not extracted");
+    }
 
     // ** dtResText **
     // check that the text is extracted and that the length is ok
+    char text[RES_TEXT_LEN] = {0};
+    size_t textLen = 0;
+    dtResText(dateEngResPkt, RES_PKT_LEN, text, &textLen);
+
+    for (int i = 0; i < textLen - 1; i++) {
+        if (text[i] != dateEngResPkt[13 + i]) {
+            failures++;
+            fail("dtResText", "text is not extracted");
+        }
+    }
 
     return failures;
 }
