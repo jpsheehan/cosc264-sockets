@@ -7,9 +7,9 @@
 
 // The phrases to send as a response. Written as templates to be filled with sprintf.
 const char* PHRASES[3][2] = {
-    { "Today's date is %s %02d, %04d", "The current time is %02d:%02d" },
-    { "Ko te ra o tenei ra ko %s %02d, %04d", "Ko te wa o tenei wa %02d:%02d" },
-    { "Heute ist der %02d. %s %04d", "Die Uhrzeit ist %02d:%02d" }
+    { "Today's date is %s %02u, %04u", "The current time is %02u:%02u" },
+    { "Ko te ra o tenei ra ko %s %02u, %04u", "Ko te wa o tenei wa %02u:%02u" },
+    { "Heute ist der %02u. %s %04u", "Die Uhrzeit ist %02u:%02u" }
 };
 
 // The names of the months as strings. Some UTF codes are required for Maori and German.
@@ -382,12 +382,21 @@ void dtResText(uint8_t pkt[], size_t n, char text[], size_t* textLen)
  * @param pkt The packet.
  * @param n The length of the packet.
  * */
-void dtPktDump(uint8_t pkt[], size_t n)
+void dtPktDump(uint8_t pkt[])
 {
+    size_t n = dtPktLength(pkt);
     for (int i = 0; i < n; i++) {
+        
+        // print the character
         printf("%02X ", pkt[i]);
+        
+        // if we are at the end of the line, also print the ascii values
         if ((i + 1) % 8 == 0) {
+            
+            // draw the partition
             printf("| ");
+            
+            // draw the ascii value or a period
             for (int j = i - 7; j <= i; j++) {
                 if (isprint(pkt[j])) {
                     putchar(pkt[j]);
@@ -398,5 +407,42 @@ void dtPktDump(uint8_t pkt[], size_t n)
             putchar('\n');
         }
     }
+    
+    // fill the remaining space on the left hand side
+    for (int k = (n % 8); k < 8; k++) {
+        printf("   ");
+    }
+    
+    // draw the partition
+    printf("| ");
+    
+    // print the character if it is printable else a fullstop
+    for (int l = (n / 8) * 8; l < n; l++) {
+        if (isprint(pkt[l])) {
+            putchar(pkt[l]);
+        } else {
+            putchar('.');
+        }
+    }
+    
     printf("\n");
+}
+
+/**
+ * Returns the length of the packet.
+ * 
+ * @param pkt The packet.
+ * @return The length of the packet.
+ * */
+size_t dtPktLength(uint8_t pkt[])
+{
+    uint16_t pktType = dtPktType(pkt, RES_PKT_LEN);
+    
+    if (pktType == PACKET_REQ) {
+        return REQ_PKT_LEN;
+    } else if (pktType == PACKET_RES) {
+        return (13 + dtResLength(pkt, RES_PKT_LEN));
+    } else {
+        return 0;
+    }
 }

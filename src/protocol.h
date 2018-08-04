@@ -32,7 +32,8 @@ bool validReqType(uint16_t reqType);
 // General packet functions
 uint16_t dtPktMagicNo(uint8_t pkt[], size_t n);
 uint16_t dtPktType(uint8_t pkt[], size_t n);
-void dtPktDump(uint8_t pkt[], size_t n);
+void dtPktDump(uint8_t pkt[]);
+size_t dtPktLength(uint8_t pkt[]);
 
 // DT Request functions
 size_t dtReq(uint8_t pkt[], size_t n, uint16_t reqType);
