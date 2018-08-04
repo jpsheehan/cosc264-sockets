@@ -48,6 +48,6 @@ uint8_t dtResDay(uint8_t pkt[], size_t n);
 uint8_t dtResHour(uint8_t pkt[], size_t n);
 uint8_t dtResMinute(uint8_t pkt[], size_t n);
 uint8_t dtResLength(uint8_t pkt[], size_t n);
-void dtResText(uint8_t pkt[], size_t n, char text[], size_t m);
+void dtResText(uint8_t pkt[], size_t n, char text[], size_t* textLen);
 
 #endif

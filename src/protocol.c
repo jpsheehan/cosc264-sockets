@@ -1,5 +1,7 @@
 // protocol.c
 
+#include <stdio.h>
+
 #include "protocol.h"
 
 // The phrases to send as a response. Written as templates to be filled with sprintf.
@@ -177,8 +179,9 @@ size_t dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint1
     pkt[11] = minute;
 
     // get the template phrase and the month as a string
-    char phrase[] = PHRASES[langCode - 1][reqType - 1];
-    char monthStr[] = MONTHS[langCode - 1][month - 1];
+    char* phrase = (char*)PHRASES[langCode - 1][reqType - 1];
+    
+    char* monthStr = (char*)MONTHS[langCode - 1][month - 1];
 
     char text[RES_TEXT_LEN] = {0};
     int length = 0;
@@ -250,7 +253,7 @@ bool dtResValid(uint8_t pkt[], size_t n)
     }
 
     if (dtResHour(pkt, n) < 0 ||
-        dtResHour > 23) {
+        dtResHour(pkt, n) > 23) {
         return false;
     }
 
@@ -369,9 +372,9 @@ uint8_t dtResLength(uint8_t pkt[], size_t n)
 void dtResText(uint8_t pkt[], size_t n, char text[], size_t* textLen)
 {
     *textLen = dtResLength(pkt, n);
-    for (int i = 0; i < textLen; i++) {
+    for (int i = 0; i < *textLen; i++) {
         text[i] = pkt[13 + i];
     }
-    text[textLen] = 0;
+    text[*textLen] = 0;
 }
 

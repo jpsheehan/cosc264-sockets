@@ -360,7 +360,7 @@ int main(void)
     // check that the text is extracted and that the length is ok
     char text[RES_TEXT_LEN] = {0};
     size_t textLen = 0;
-    dtResText(dateEngResPkt, RES_PKT_LEN, text, textLen);
+    dtResText(dateEngResPkt, RES_PKT_LEN, text, &textLen);
 
     for (int i = 0; i < textLen - 1; i++) {
         if (text[i] != dateEngResPkt[13 + i]) {
