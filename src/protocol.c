@@ -7,9 +7,9 @@
 
 // The phrases to send as a response. Written as templates to be filled with sprintf.
 const char* PHRASES[3][2] = {
-    { "Today's date is %s %2d, %4d", "The current time is %2d:%2d" },
-    { "Ko te ra o tenei ra ko %s %2d, %4d", "Ko te wa o tenei wa %2d:%2d" },
-    { "Heute ist der %2d. %s %4d", "Die Uhrzeit ist %2d:%2d" }
+    { "Today's date is %s %02d, %04d", "The current time is %02d:%02d" },
+    { "Ko te ra o tenei ra ko %s %02d, %04d", "Ko te wa o tenei wa %02d:%02d" },
+    { "Heute ist der %02d. %s %04d", "Die Uhrzeit ist %02d:%02d" }
 };
 
 // The names of the months as strings. Some UTF codes are required for Maori and German.
@@ -202,9 +202,6 @@ size_t dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint1
     if (length < 0) {
         return 0;
     }
-
-    // we ignore the null terminator
-    length--;
 
     // write the length to the packet
     pkt[12] = (uint8_t)length;
