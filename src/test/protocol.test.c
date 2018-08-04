@@ -194,15 +194,17 @@ int main(void)
 
     // create valid packets and check that the size returned is correct
     uint8_t dateEngResPkt[RES_PKT_LEN] = {0};
-    if (dtRes(dateEngResPkt, RES_PKT_LEN, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) != 13 + 19 + 4 + 2 + 4) {
+    if (dtRes(dateEngResPkt, RES_PKT_LEN, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) != 13 + 29) {
         failures++;
         fail("dtRes", "english date packet isn't the correct length");
+        dtPktDump(dateEngResPkt, RES_PKT_LEN);
     }
 
     uint8_t timeEngResPkt[RES_PKT_LEN] = {0};
-    if (dtRes(timeEngResPkt, RES_PKT_LEN, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) != 13 + 21 + 5) {
+    if (dtRes(timeEngResPkt, RES_PKT_LEN, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) != 13 + 0) {
         failures++;
         fail("dtRes", "english time packet isn't the correct length");
+        dtPktDump(timeEngResPkt, RES_PKT_LEN);
     }
 
     // ** dtResValid **
@@ -351,7 +353,7 @@ int main(void)
 
     // ** dtResLength **
     // check that the length is extracted
-    if (dtResLength(dateEngResPkt, RES_PKT_LEN) != 29) {
+    if (dtResLength(dateEngResPkt, RES_PKT_LEN) != 28) {
         failures++;
         fail("dtResLength", "length is not extracted");
     }

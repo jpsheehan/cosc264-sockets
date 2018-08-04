@@ -1,14 +1,15 @@
 // protocol.c
 
 #include <stdio.h>
+#include <ctype.h>
 
 #include "protocol.h"
 
 // The phrases to send as a response. Written as templates to be filled with sprintf.
 const char* PHRASES[3][2] = {
-    { "Today's date is %s %d, %d", "The current time is %d:%d" },
-    { "Ko te ra o tenei ra ko %s %d, %d", "Ko te wa o tenei wa %d:%d" },
-    { "Heute ist der %d. %s %d", "Die Uhrzeit ist %d:%d" }
+    { "Today's date is %s %2d, %4d", "The current time is %2d:%2d" },
+    { "Ko te ra o tenei ra ko %s %2d, %4d", "Ko te wa o tenei wa %2d:%2d" },
+    { "Heute ist der %2d. %s %4d", "Die Uhrzeit ist %2d:%2d" }
 };
 
 // The names of the months as strings. Some UTF codes are required for Maori and German.
@@ -378,3 +379,27 @@ void dtResText(uint8_t pkt[], size_t n, char text[], size_t* textLen)
     text[*textLen] = 0;
 }
 
+/**
+ * Dumps the packet data to stdout.
+ * 
+ * @param pkt The packet.
+ * @param n The length of the packet.
+ * */
+void dtPktDump(uint8_t pkt[], size_t n)
+{
+    for (int i = 0; i < n; i++) {
+        printf("%02X ", pkt[i]);
+        if ((i + 1) % 8 == 0) {
+            printf("| ");
+            for (int j = i - 7; j <= i; j++) {
+                if (isprint(pkt[j])) {
+                    putchar(pkt[j]);
+                } else {
+                    putchar('.');
+                }
+            }
+            putchar('\n');
+        }
+    }
+    printf("\n");
+}
