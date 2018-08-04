@@ -9,23 +9,21 @@ int main(void)
 {
     uint16_t failures = 0;
 
-    size_t pktResult = 0;
-
     // ** dtReq **
     // create a request packet with a size too small
-    size_t smallResPktLen = REQ_PKT_LEN - 1;
-    uint8_t smallResPkt[smallResPktLen] = {0};
+    size_t smallReqPktLen = REQ_PKT_LEN - 1;
+    uint8_t smallReqPkt[smallReqPktLen];
     
-    if (dtReq(smallResPkt, smallResPktLen, REQ_DATE) != 0) {
+    if (dtReq(smallReqPkt, smallReqPktLen, REQ_DATE) != 0) {
         failures++;
         fail("dtReq", "n is too small");
     }
 
     // create a request packet with a size too large
-    size_t largeResPktLen = REQ_PKT_LEN + 1;
-    uint8_t largeResPkt[largeResPktLen] = {0};
+    size_t largeReqPktLen = REQ_PKT_LEN + 1;
+    uint8_t largeReqPkt[largeReqPktLen];
 
-    if (dtReq(largeResPkt, largeResPktLen, REQ_DATE) != 0) {
+    if (dtReq(largeReqPkt, largeReqPktLen, REQ_DATE) != 0) {
         failures++;
         fail("dtReq", "n is too large");
     }
@@ -84,7 +82,7 @@ int main(void)
     }
 
     // check with an invalid packet type
-    uint8_t badPktTypeReqPkt[REQ_PKT_LEN] = {0x49, 0x7E, 0x99, 0x88, 0x00, 0x00, 0x01};
+    uint8_t badPktTypeReqPkt[REQ_PKT_LEN] = {0x49, 0x7E, 0x99, 0x88, 0x00, 0x01};
     if (dtReqValid(badPktTypeReqPkt, REQ_PKT_LEN)) {
         failures++;
         fail("dtReqValid", "pktType should be incorrect");
@@ -166,7 +164,7 @@ int main(void)
     // ** dtRes **
     // create a packet with a size too small
     size_t smallResPktLen = RES_PKT_LEN - 1;
-    uint8_t smallResPkt[smallResPktLen] = {0};
+    uint8_t smallResPkt[smallResPktLen];
     if (dtRes(smallResPkt, smallResPktLen, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) == smallResPktLen) {
         failures++;
         fail("dtRes", "n should be too small");
@@ -174,7 +172,7 @@ int main(void)
 
     // create a packet with a size too large
     size_t largeResPktLen = RES_PKT_LEN + 1;
-    uint8_t largeResPkt[largeResPktLen] = {0};
+    uint8_t largeResPkt[largeResPktLen];
     if (dtRes(largeResPkt, largeResPktLen, REQ_DATE, LANG_ENG, 2018, 6, 10, 12, 45) == largeResPktLen) {
         failures++;
         fail("dtRes", "n should be too large");
@@ -311,49 +309,49 @@ int main(void)
 
     // ** dtResLangCode **
     // check that the lang code is extracted
-    if (!dtResLangCode(dateEngResPkt, RES_PKT_LEN) != LANG_ENG) {
+    if (dtResLangCode(dateEngResPkt, RES_PKT_LEN) != LANG_ENG) {
         failures++;
         fail("dtResLangCode", "lang code is not extracted");
     }
 
     // ** dtResYear **
     // check that the year is extracted
-    if (!dtResYear(dateEngResPkt, RES_PKT_LEN) != 2018) {
+    if (dtResYear(dateEngResPkt, RES_PKT_LEN) != 2018) {
         failures++;
         fail("dtResYear", "year is not extracted");
     }
 
     // ** dtResMonth **
     // check that the month is extracted
-    if (!dtResMonth(dateEngResPkt, RES_PKT_LEN) != 6) {
+    if (dtResMonth(dateEngResPkt, RES_PKT_LEN) != 6) {
         failures++;
         fail("dtResMonth", "month is not extracted");
     }
 
     // ** dtResDay **
     // check that the day is extracted
-    if (!dtResDay(dateEngResPkt, RES_PKT_LEN) != 10) {
+    if (dtResDay(dateEngResPkt, RES_PKT_LEN) != 10) {
         failures++;
         fail("dtResDay", "day is not extracted");
     }
 
     // ** dtResHour **
     // check that the hour is extracted
-    if (!dtResHour(dateEngResPkt, RES_PKT_LEN) != 12) {
+    if (dtResHour(dateEngResPkt, RES_PKT_LEN) != 12) {
         failures++;
         fail("dtResHour", "hour is not extracted");
     }
 
     // ** dtResMinute **
     // check that the minute is extracted
-    if (!dtResMinute(dateEngResPkt, RES_PKT_LEN) != 45) {
+    if (dtResMinute(dateEngResPkt, RES_PKT_LEN) != 45) {
         failures++;
         fail("dtResMinute", "minute is not extracted");
     }
 
     // ** dtResLength **
     // check that the length is extracted
-    if (!dtResLength(dateEngResPkt, RES_PKT_LEN) != 29) {
+    if (dtResLength(dateEngResPkt, RES_PKT_LEN) != 29) {
         failures++;
         fail("dtResLength", "length is not extracted");
     }
@@ -362,7 +360,7 @@ int main(void)
     // check that the text is extracted and that the length is ok
     char text[RES_TEXT_LEN] = {0};
     size_t textLen = 0;
-    dtResText(dateEngResPkt, RES_PKT_LEN, text, &textLen);
+    dtResText(dateEngResPkt, RES_PKT_LEN, text, textLen);
 
     for (int i = 0; i < textLen - 1; i++) {
         if (text[i] != dateEngResPkt[13 + i]) {
