@@ -296,16 +296,14 @@ int main(void)
     }
     timeEngResPkt[11] = (uint8_t)(45);
 
-    // check with a packet with an invalid length
-
     // check with valid packets
-    if (!dtResValid(timeEngResPkt, RES_PKT_LEN)) {
+    if (!dtResValid(timeEngResPkt, dtPktLength(timeEngResPkt))) {
         failures++;
         fail("dtResValid", "english time packet should be valid");
         dtPktDump(timeEngResPkt);
     }
     
-    if (!dtResValid(dateEngResPkt, RES_PKT_LEN)) {
+    if (!dtResValid(dateEngResPkt, dtPktLength(dateEngResPkt))) {
         failures++;
         fail("dtResValid", "english date packet should be valid");
         dtPktDump(dateEngResPkt);
