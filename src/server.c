@@ -74,6 +74,8 @@ void serve(uint16_t engPort, uint16_t maoPort, uint16_t gerPort)
 
     while (true) {
 
+
+    printf("cool");
         // c_sockfd = accept(s_sockfd, (struct sockaddr *) &c_addr, &c_len);
 
         // if (c_sockfd < 0) {
@@ -118,8 +120,6 @@ void serve(uint16_t engPort, uint16_t maoPort, uint16_t gerPort)
             }
 
         }
-
-        // close(c_sockfd);
 
     }
 

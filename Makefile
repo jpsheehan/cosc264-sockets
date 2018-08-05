@@ -1,17 +1,19 @@
 CFLAGS = -std=c99 -Werror -Wall -I ./src/
 
-all: server client test
+all: libs server client test
 
-server: src/server.c
-	gcc $(CFLAGS) -o bin/server src/protocol.c src/utils.c src/server.c
+libs:
+	gcc $(CFLAGS) -c -o obj/protocol.o src/protocol.c
+	gcc $(CFLAGS) -c -o obj/utils.o src/utils.c
 
-client: src/client.c
-	gcc $(CFLAGS) -o bin/client src/client.c
+server: libs src/server.c
+	gcc $(CFLAGS) -o bin/server obj/protocol.o obj/utils.o src/server.c
 
-test: src/test/protocol.test.c
-	gcc $(CFLAGS) -g -c -o obj/protocol.o src/protocol.c
-	gcc $(CFLAGS) -g -c -o obj/utils.o src/utils.c
-	gcc $(CFLAGS) -g -o bin/test/protocol.test obj/protocol.o obj/utils.o src/test/protocol.test.c
+client: libs src/client.c
+	gcc $(CFLAGS) -o bin/client obj/protocol.o obj/utils.o src/client.c
+
+test: libs src/test/protocol.test.c
+	gcc $(CFLAGS) -o bin/test/protocol.test obj/protocol.o obj/utils.o src/test/protocol.test.c
 
 run-tests: bin/test/protocol.test
 	./bin/test/protocol.test
