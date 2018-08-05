@@ -13,13 +13,16 @@
 
 int main(int argc, char** argv)
 {
+    uint16_t ports[3] = {0};
+
     if (argc != 4) {
         error("server must receive exactly 3 arguments", 1);
     }
 
-    int ports[3] = {0};
     if (!readPorts(argv, ports)) {
-        error("ports must be between .. and .. (inclusive)", 2);
+        char msg[52] = {0};
+        sprintf(msg, "ports must be between %u and %u (inclusive)", MIN_PORT_NO, MAX_PORT_NO);
+        error(msg, 2);
     }
 
     if (ports[0] == ports[1] || ports[0] == ports[2] || ports[1] == ports[2]) {
@@ -36,7 +39,7 @@ void serve(uint16_t engPort, uint16_t maoPort, uint16_t gerPort)
 
 }
 
-bool readPorts(char** argv, int* ports)
+bool readPorts(char** argv, uint16_t* ports)
 {
     for (int i = 0; i < 3; i++) {
         ports[i] = atoi(argv[i+1]);
