@@ -59,7 +59,7 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     // setup the server address struct
     memset((char*) &s_addr, 0, s_len);
     s_addr.sin_family = AF_INET;
-    s_addr.sin_port = port;
+    s_addr.sin_port = htons(port);
     if (inet_pton(AF_INET, ip_addr, &s_addr.sin_addr) == 0) {
         error("invalid ip address", 1);
     }
