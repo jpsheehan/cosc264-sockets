@@ -66,9 +66,9 @@ void serve(uint16_t engPort, uint16_t maoPort, uint16_t gerPort)
         error("could not bind to socket", 2);
     }
 
-    listen(s_sockfd, 5);
+    printf("Listening on port %u...\n", engPort);
 
-    printf("Listening on port %u...", engPort);
+    listen(s_sockfd, 5);
 
     c_len = sizeof(c_addr);
 
