@@ -45,9 +45,10 @@ int main(int argc, char** argv)
 void request(uint16_t reqType, char* ip_addr, uint16_t port)
 {
     struct sockaddr_in s_addr;
-    int s_len = sizeof(s_addr);
+    socklen_t s_len = sizeof(s_addr);
     int c_sockfd;
-    uint8_t buffer[REQ_PKT_LEN] = {0};
+    uint8_t req[REQ_PKT_LEN] = {0};
+    uint8_t buffer[RES_PKT_LEN] = {0};
 
     // create the socket
     c_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -65,17 +66,23 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     }
 
     // create the packet
-    if (dtReq(buffer, REQ_PKT_LEN, reqType) == 0) {
+    if (dtReq(req, REQ_PKT_LEN, reqType) == 0) {
         error("could not create packet", 3);
     }
 
-    if (sendto(c_sockfd, buffer, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
+    if (sendto(c_sockfd, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
         error("could not send packet", 2);
     }
 
-    close(c_sockfd);
-
     printf("packet sent\n");
+
+    if (recvfrom(c_sockfd, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
+        error("could not recieve packet", 2);
+    }
+
     dtPktDump(buffer);
+
+
+    close(c_sockfd);
 
 }
