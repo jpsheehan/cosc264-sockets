@@ -4,26 +4,36 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 
 #include "protocol.h"
 #include "server.h"
+#include "utils.h"
 
 int main(int argc, char** argv)
 {
     if (argc != 4) {
-        fprintf(stderr, "server must receive exactly 3 arguments\n");
-        return 1;
+        error("server must receive exactly 3 arguments", 1);
     }
 
     int ports[3] = {0};
     if (!readPorts(argv, ports)) {
-        fprintf(stderr, "ports must be between %d and %d (inclusive)\n", MIN_PORT_NO, MAX_PORT_NO);
-        return 2;
+        error("ports must be between .. and .. (inclusive)", 2);
     }
 
-    
+    if (ports[0] == ports[1] || ports[0] == ports[2] || ports[1] == ports[2]) {
+        error("port numbers must be unique", 3);
+    }
+
+    serve(ports[0], ports[1], ports[2]);
 
     return EXIT_SUCCESS;
+}
+
+void serve(uint16_t engPort, uint16_t maoPort, uint16_t gerPort)
+{
+
 }
 
 bool readPorts(char** argv, int* ports)

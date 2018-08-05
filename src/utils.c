@@ -13,3 +13,9 @@ void fail(char funcname[], char condition[])
 {
     fprintf(stderr, "Failure: %s - %s\n", funcname, condition);
 }
+
+void error(char message[], int code)
+{
+    fprintf(stderr, "*** Error: %s ***\n", message);
+    exit(code);
+}

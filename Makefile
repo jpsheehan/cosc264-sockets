@@ -3,7 +3,7 @@ CFLAGS = -std=c99 -Werror -Wall -I ./src/
 all: server client test
 
 server: src/server.c
-	gcc $(CFLAGS) -o bin/server src/server.c
+	gcc $(CFLAGS) -o bin/server src/protocol.c src/utils.c src/server.c
 
 client: src/client.c
 	gcc $(CFLAGS) -o bin/client src/client.c
