@@ -74,15 +74,16 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
         error("could not send packet", 2);
     }
 
-    printf("packet sent\n");
-
     if (recvfrom(c_sockfd, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
         error("could not recieve packet", 2);
     }
 
-    dtPktDump(buffer);
-
-
     close(c_sockfd);
+
+    char response[RES_TEXT_LEN] = {0};
+    size_t response_len = 0;
+    dtResText(buffer, dtPktLength(buffer), response, &response_len);
+
+    printf("%s\n", response);
 
 }
