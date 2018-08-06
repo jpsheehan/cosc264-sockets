@@ -477,3 +477,12 @@ char* getLangName(uint16_t langCode)
         default: return "";
     }
 }
+
+char* getRequestTypeString(uint16_t reqType)
+{
+    switch (reqType) {
+        case REQ_DATE: return "date";
+        case REQ_TIME: return "time";
+        default: return "";
+    }
+}

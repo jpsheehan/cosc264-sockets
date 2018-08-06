@@ -114,21 +114,23 @@ void serve(uint16_t port, uint16_t langCode)
 
         n = recvfrom(s_sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &c_addr, &c_len);
 
+        printf("%s - ", getCurrentTimeString());
+
         if (n < 0) {
-            error("could not recvfrom", 2);
+            printf("network error - packet discarded\n");
+            continue;
         }
 
         // handle the data
         if (!dtReqValid(buffer, n)) {
 
-            printf("invalid packet\n");
-            dtPktDump(buffer);
+            printf("invalid request - packet discarded\n");
 
         } else {
 
-            dtPktDump(buffer);
-
             reqType = dtReqType(buffer, n);
+
+            printf("%s %s requested - ", getLangName(langCode), getRequestTypeString(reqType));
 
             memset(res, 0, RES_PKT_LEN);
 
@@ -137,7 +139,9 @@ void serve(uint16_t port, uint16_t langCode)
             n = sendto(s_sockfd, res, b, 0, (struct sockaddr *) &c_addr, c_len);
 
             if (n < 0) {
-                error("error in sendto", 2);
+                printf("response failed to send\n");
+            } else {
+                printf("response sent\n");
             }
 
         }
