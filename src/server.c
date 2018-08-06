@@ -8,10 +8,14 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "protocol.h"
 #include "server.h"
 #include "utils.h"
+
+int s_sockfd;
+int s_port;
 
 int main(int argc, char** argv)
 {
@@ -32,6 +36,10 @@ int main(int argc, char** argv)
     if (ports[0] == ports[1] || ports[0] == ports[2] || ports[1] == ports[2]) {
         error("port numbers must be unique", 1);
     }
+
+    // handle some signals so that the sockets can shutdown 
+    signal(SIGINT, handleSignal);
+    signal(SIGTERM, handleSignal);
 
     // fork twice to serve the three languages in parallel
     pid1 = fork();
@@ -73,6 +81,19 @@ int main(int argc, char** argv)
 }
 
 /**
+ * Gracefully shutdown the server by closing the sockets.
+ * 
+ * @param sig The signal sent to the program.
+ * */
+void handleSignal(int sig)
+{
+    // close the server socket and exit
+    printf("Closing socket on port %d...\n", s_port);
+    close(s_sockfd);
+    exit(0);
+}
+
+/**
  * Serves a particular language on a particular port.
  * 
  * @param port The port to serve on.
@@ -80,7 +101,7 @@ int main(int argc, char** argv)
  * */
 void serve(uint16_t port, uint16_t langCode)
 {
-    int s_sockfd, n;
+    int n;
     struct sockaddr_in s_addr, c_addr;
     socklen_t c_len = sizeof(c_addr);
     uint8_t buffer[256];
@@ -89,6 +110,7 @@ void serve(uint16_t port, uint16_t langCode)
     int optval;
 
     s_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    s_port = port;
 
     if (s_sockfd < 0) {
         error("could not create a socket", 2);
@@ -157,9 +179,6 @@ void serve(uint16_t port, uint16_t langCode)
         }
 
     }
-
-    // close the server socket
-    close(s_sockfd);
 
 }
 
