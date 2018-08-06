@@ -9,6 +9,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netinet/in.h>
+#include <sys/poll.h>
+#include <fcntl.h>
 
 #include "client.h"
 #include "protocol.h"
@@ -56,14 +58,17 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
 {
     struct sockaddr_in s_addr;
     socklen_t s_len = sizeof(s_addr);
-    int c_sockfd;
+
+    struct pollfd pfd;
+
     uint8_t req[REQ_PKT_LEN] = {0};
     uint8_t buffer[RES_PKT_LEN] = {0};
 
     // create the socket
-    c_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    pfd.fd = socket(AF_INET, SOCK_DGRAM, 0);
+    pfd.events = POLLOUT;
 
-    if (c_sockfd < 0) {
+    if (pfd.fd < 0) {
         error("could not create socket", 2);
     }
 
@@ -80,18 +85,41 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
         error("could not create packet", 3);
     }
 
+    // int flags;
+
+    //set socket nonblocking flag
+    // if( (flags = fcntl(pfd.fd, F_GETFL, 0)) < 0)
+    //     error("error getting flags", 4);
+    
+    // if(fcntl(pfd.fd, F_SETFL, flags | O_NONBLOCK) < 0)
+    //     error("error setting flags", 4);
+
+    if (connect(pfd.fd, (struct sockaddr *) &s_addr, s_len) < 0) {
+        error("couldn't connect", 4);
+    }
+
+    int pollResult = poll(&pfd, 1, 1000);
+
+    if (pollResult < 0) {
+        error("could not poll", 4);
+    }
+
+    if (pollResult == 0) {
+        error("poll timed out", 4);
+    }
+
     // attempt to send the packet
-    if (sendto(c_sockfd, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
+    if (sendto(pfd.fd, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
         error("could not send packet", 2);
     }
 
     // attempt to receive the response
-    if (recvfrom(c_sockfd, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
+    if (recvfrom(pfd.fd, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
         error("could not recieve packet", 2);
     }
 
     // close the socket
-    close(c_sockfd);
+    close(pfd.fd);
 
     // print the response
     char response[RES_TEXT_LEN] = {0};
