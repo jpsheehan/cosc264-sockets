@@ -56,6 +56,10 @@ int main(int argc, char** argv)
  * */
 void request(uint16_t reqType, char* ip_addr, uint16_t port)
 {
+
+    int flags;
+    int pollResult;
+    
     struct sockaddr_in s_addr;
     socklen_t s_len = sizeof(s_addr);
 
@@ -85,20 +89,19 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
         error("could not create packet", 3);
     }
 
-    // int flags;
-
     //set socket nonblocking flag
-    // if( (flags = fcntl(pfd.fd, F_GETFL, 0)) < 0)
-    //     error("error getting flags", 4);
+    if( (flags = fcntl(pfd.fd, F_GETFL, 0)) < 0)
+        error("error getting flags", 4);
     
-    // if(fcntl(pfd.fd, F_SETFL, flags | O_NONBLOCK) < 0)
-    //     error("error setting flags", 4);
+    if(fcntl(pfd.fd, F_SETFL, flags | O_NONBLOCK) < 0)
+        error("error setting flags", 4);
 
-    if (connect(pfd.fd, (struct sockaddr *) &s_addr, s_len) < 0) {
-        error("couldn't connect", 4);
-    }
+    // if (connect(pfd.fd, (struct sockaddr *) &s_addr, s_len) < 0) {
+    //     error("couldn't connect", 4);
+    // }
 
-    int pollResult = poll(&pfd, 1, 1000);
+    // wait for the socket to be writable
+    pollResult = poll(&pfd, 1, 1000);
 
     if (pollResult < 0) {
         error("could not poll", 4);
@@ -111,6 +114,18 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     // attempt to send the packet
     if (sendto(pfd.fd, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
         error("could not send packet", 2);
+    }
+
+    // Wait for the socket to be readable
+    pfd.events = POLLIN;
+    pollResult = poll(&pfd, 1, 1000);
+
+    if (pollResult < 0) {
+        error("could not poll", 4);
+    }
+
+    if (pollResult == 0) {
+        error("poll timed out", 4);
     }
 
     // attempt to receive the response
