@@ -1,6 +1,6 @@
 CFLAGS = -std=c99 -Werror -Wall -I ./src/
 
-all: libs server client test
+all: libs server client
 
 libs:
 	gcc $(CFLAGS) -c -o obj/protocol.o src/protocol.c
@@ -17,3 +17,9 @@ test: libs src/test/protocol.test.c
 
 run-tests: bin/test/protocol.test
 	./bin/test/protocol.test
+
+docs:
+	doxygen doxygen.conf
+	cd docs/latex
+	make
+	cd ../..

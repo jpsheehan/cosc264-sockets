@@ -62,7 +62,11 @@ void handleSignal(int sig)
     exit(0);
 }
 
-
+/**
+ * Serves on all three ports.
+ * 
+ * @param The list of ports to serve on.
+ * */
 void serve(uint16_t ports[])
 {
     int n;
