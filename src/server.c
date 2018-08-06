@@ -9,17 +9,16 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <sys/poll.h>
 
 #include "protocol.h"
 #include "server.h"
 #include "utils.h"
 
-int s_sockfd;
-int s_port;
+struct pollfd sfds[3];
 
 int main(int argc, char** argv)
 {
-    pid_t pid1, pid2;
     uint16_t ports[3] = {0};
 
     // validate the arguments
@@ -38,44 +37,10 @@ int main(int argc, char** argv)
     }
 
     // handle some signals so that the sockets can shutdown 
-    signal(SIGINT, handleSignal);
-    signal(SIGTERM, handleSignal);
+    // signal(SIGINT, handleSignal);
+    // signal(SIGTERM, handleSignal);
 
-    // fork twice to serve the three languages in parallel
-    pid1 = fork();
-
-    if (pid1 < 0) {
-
-        error("could not fork process", 3);
-
-    } else if (pid1 == 0) {
-
-        // child to serve English
-        serve(ports[0], LANG_ENG);
-
-    } else {
-
-        // parent to fork again
-
-        pid2 = fork();
-
-        if (pid2 < 0) {
-
-            error("could not fork process", 3);
-
-        } else if (pid2 == 0) {
-
-            // child to serve Maori
-            serve(ports[1], LANG_MAO);
-
-        } else {
-
-            // parent to serve German
-            serve(ports[2], LANG_GER);
-
-        }
-
-    }
+    serve(ports);
 
     return EXIT_SUCCESS;
 }
@@ -87,57 +52,83 @@ int main(int argc, char** argv)
  * */
 void handleSignal(int sig)
 {
-    // close the server socket and exit
-    printf("Closing socket on port %d...\n", s_port);
-    close(s_sockfd);
+    // close the sockets and exit
+    printf("Closing sockets...\n");
+
+    for (int i = 0; i < 3; i++) {
+        close(sfds[i].fd);
+    }
+
     exit(0);
 }
 
-/**
- * Serves a particular language on a particular port.
- * 
- * @param port The port to serve on.
- * @param langCode The language to serve.
- * */
-void serve(uint16_t port, uint16_t langCode)
+
+void serve(uint16_t ports[])
 {
     int n;
-    struct sockaddr_in s_addr, c_addr;
+    struct sockaddr_in s_addr[3], c_addr;
     socklen_t c_len = sizeof(c_addr);
     uint8_t buffer[256];
     uint8_t res[RES_PKT_LEN];
     uint16_t reqType;
-    int optval;
 
-    s_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    s_port = port;
+    // create three sockets for the three ports
+    for (int i = 0; i < 3; i++) {
+    
+        int optval;
 
-    if (s_sockfd < 0) {
-        error("could not create a socket", 2);
+        sfds[i].fd = socket(AF_INET, SOCK_DGRAM, 0);
+        sfds[i].events = POLLIN;
+
+        if (sfds[i].fd < 0) {
+            error("could not create a socket", 2);
+        }
+
+        // lets us reuse the port after killing the server.
+        optval = 1;
+        setsockopt(sfds[i].fd, SOL_SOCKET, SO_REUSEADDR,
+            (const void *) &optval, sizeof(int));
+
+        // fill out the s_addr struct with information about how we want to serve data
+        memset((char *) &s_addr[i], 0, sizeof(s_addr[i]));
+        s_addr[i].sin_family = AF_INET;
+        s_addr[i].sin_addr.s_addr = INADDR_ANY;
+        s_addr[i].sin_port = htons(ports[i]);
+
+        // attempt to bind to the port number
+        if (bind(sfds[i].fd, (struct sockaddr *) &s_addr[i], sizeof(s_addr[i])) < 0) {
+            error("could not bind to socket", 2);
+        }
+
+        // print some information and listen
+        printf("Listening on port %u for %s requests...\n", ports[i], getLangName(i + 1));
+
+        listen(sfds[i].fd, 5);
+    
     }
-
-    // lets us reuse the port after killing the server.
-    optval = 1;
-    setsockopt(s_sockfd, SOL_SOCKET, SO_REUSEADDR,
-        (const void *) &optval, sizeof(int));
-
-    // fill out the s_addr struct with information about how we want to serve data
-    memset((char *) &s_addr, 0, sizeof(s_addr));
-    s_addr.sin_family = AF_INET;
-    s_addr.sin_addr.s_addr = INADDR_ANY;
-    s_addr.sin_port = htons(port);
-
-    // attempt to bind to the port number
-    if (bind(s_sockfd, (struct sockaddr *) &s_addr, sizeof(s_addr)) < 0) {
-        error("could not bind to socket", 2);
-    }
-
-    // print some information and listen
-    printf("Listening on port %u for %s requests...\n", port, getLangName(langCode));
-
-    listen(s_sockfd, 5);
 
     while (true) {
+
+        int s_sockfd = -1;
+        int langCode = -1;
+
+        // perform the poll
+        int pollResult = poll(sfds, 3, -1);
+
+        // if there was an error polling
+        if (pollResult == -1) {
+            error("poll failed", 4);
+        }
+
+        // iterate through the pollfd values until one is ready to receive data
+        // store the socket descriptor and the language code
+        for (int i = 0; i < 3; i++) {
+            if (sfds[i].revents & POLLIN) {
+                s_sockfd = sfds[i].fd;
+                langCode = i + 1;
+                break;
+            }
+        }
 
         // receive data from the client
         n = recvfrom(s_sockfd, buffer, sizeof(buffer), 0, (struct sockaddr *) &c_addr, &c_len);

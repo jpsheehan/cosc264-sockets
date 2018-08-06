@@ -2,7 +2,7 @@
 #define SERVER_H
 
 bool readPorts(char** argv, uint16_t* ports);
-void serve(uint16_t port, uint16_t langCode);
+void serve(uint16_t ports[]);
 void handleSignal(int sig);
 
 #endif
