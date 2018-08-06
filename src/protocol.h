@@ -17,7 +17,7 @@
 #define REQ_TIME 0x0002
 #define REQ_PKT_LEN 6
 
-#define RES_TEXT_LEN 64
+#define RES_TEXT_LEN 255
 #define RES_PKT_LEN (13 + RES_TEXT_LEN)
 
 // Language code definitions
