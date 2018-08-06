@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "protocol.h"
 
@@ -213,6 +214,26 @@ size_t dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint1
 
     return 13 + length;
 
+}
+
+/**
+ * Constructs the DT Request Packet from the current time and date.
+ * 
+ * @param pkt A pointer to the packet.
+ * @param n The size of the packet. Must be equal to RES_PKT_LEN.
+ * @param reqType The type of request. Must be either REQ_DATE or REQ_TIME.
+ * @param langCode The language to respond in. Must be valid.
+ * @return The length of the packet.
+ * */
+size_t dtResNow(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode)
+{
+    struct tm* now;
+    time_t raw_time;
+
+    time(&raw_time);
+    now = localtime(&raw_time);
+    
+    return dtRes(pkt, n, reqType, langCode, now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min);
 }
 
 /**

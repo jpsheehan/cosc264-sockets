@@ -132,7 +132,7 @@ void serve(uint16_t port, uint16_t langCode)
 
             memset(res, 0, RES_PKT_LEN);
 
-            size_t b = dtRes(res, RES_PKT_LEN, reqType, langCode, 2018, 12, 31, 23, 59);
+            size_t b = dtResNow(res, RES_PKT_LEN, reqType, langCode);
 
             n = sendto(s_sockfd, res, b, 0, (struct sockaddr *) &c_addr, c_len);
 

@@ -43,6 +43,7 @@ bool dtReqValid(uint8_t pkt[], size_t n);
 
 // DT Response functions
 size_t dtRes(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode, uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute);
+size_t dtResNow(uint8_t pkt[], size_t n, uint16_t reqType, uint16_t langCode);
 bool dtResValid(uint8_t pkt[], size_t n);
 uint16_t dtResLangCode(uint8_t pkt[], size_t n);
 uint16_t dtResYear(uint8_t pkt[], size_t n);
