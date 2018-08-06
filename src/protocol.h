@@ -28,6 +28,7 @@
 // Helper functions
 bool validLangCode(uint16_t langCode);
 bool validReqType(uint16_t reqType);
+char* getLangName(uint16_t langCode);
 
 // General packet functions
 uint16_t dtPktMagicNo(uint8_t pkt[], size_t n);

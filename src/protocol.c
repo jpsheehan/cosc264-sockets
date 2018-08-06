@@ -446,3 +446,13 @@ size_t dtPktLength(uint8_t pkt[])
         return 0;
     }
 }
+
+char* getLangName(uint16_t langCode)
+{
+    switch (langCode) {
+        case LANG_ENG: return "English";
+        case LANG_GER: return "German";
+        case LANG_MAO: return "Te Reo M\u0101ori";
+        default: return "";
+    }
+}
