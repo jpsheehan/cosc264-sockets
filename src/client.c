@@ -9,8 +9,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <sys/poll.h>
 #include <fcntl.h>
+#include <sys/select.h>
+#include <time.h>
 
 #include "client.h"
 #include "protocol.h"
@@ -58,21 +59,24 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
 {
 
     int flags;
-    int pollResult;
+    int selectResult;
     
     struct sockaddr_in s_addr;
     socklen_t s_len = sizeof(s_addr);
 
-    struct pollfd pfd;
+    int c_socket;
 
     uint8_t req[REQ_PKT_LEN] = {0};
     uint8_t buffer[RES_PKT_LEN] = {0};
 
-    // create the socket
-    pfd.fd = socket(AF_INET, SOCK_DGRAM, 0);
-    pfd.events = POLLOUT;
+    struct timeval timeout;
 
-    if (pfd.fd < 0) {
+    fd_set rfds;
+
+    // create the socket
+    c_socket = socket(AF_INET, SOCK_DGRAM, 0);
+
+    if (c_socket < 0) {
         error("could not create socket", 2);
     }
 
@@ -90,51 +94,67 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     }
 
     //set socket nonblocking flag
-    if( (flags = fcntl(pfd.fd, F_GETFL, 0)) < 0)
+    if( (flags = fcntl(c_socket, F_GETFL, 0)) < 0)
         error("error getting flags", 4);
     
-    if(fcntl(pfd.fd, F_SETFL, flags | O_NONBLOCK) < 0)
+    if(fcntl(c_socket, F_SETFL, flags | O_NONBLOCK) < 0)
         error("error setting flags", 4);
 
     // if (connect(pfd.fd, (struct sockaddr *) &s_addr, s_len) < 0) {
     //     error("couldn't connect", 4);
     // }
 
-    // wait for the socket to be writable
-    pollResult = poll(&pfd, 1, 1000);
+    // set the timeout to be one second
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
 
-    if (pollResult < 0) {
+    // set the rfds
+    FD_ZERO(&rfds);
+    FD_SET(c_socket, &rfds);
+
+    // wait for the socket to be writable
+    selectResult = select(c_socket + 1, NULL, &rfds, NULL, &timeout);
+
+    if (selectResult < 0) {
         error("could not poll", 4);
     }
 
-    if (pollResult == 0) {
-        error("poll timed out", 4);
+    if (selectResult == 0) {
+        error("select timed out", 4);
     }
 
     // attempt to send the packet
-    if (sendto(pfd.fd, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
+    if (sendto(c_socket, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
         error("could not send packet", 2);
     }
 
-    // Wait for the socket to be readable
-    pfd.events = POLLIN;
-    pollResult = poll(&pfd, 1, 1000);
 
-    if (pollResult < 0) {
+    // set the timeout to be one second
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    // set the rfds
+    FD_ZERO(&rfds);
+    FD_SET(c_socket, &rfds);
+
+    // Wait for the socket to be readable
+    selectResult = select(c_socket + 1, &rfds, NULL, NULL, &timeout);
+
+    if (selectResult < 0) {
         error("could not poll", 4);
     }
 
-    if (pollResult == 0) {
-        error("poll timed out", 4);
+    if (selectResult == 0) {
+        error("select timed out", 4);
     }
 
     // attempt to receive the response
-    if (recvfrom(pfd.fd, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
+    if (recvfrom(c_socket, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
         error("could not recieve packet", 2);
     }
 
     // close the socket
-    close(pfd.fd);
+    close(c_socket);
 
     // print the response
     char response[RES_TEXT_LEN] = {0};
