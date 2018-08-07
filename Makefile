@@ -15,16 +15,8 @@ client: libs src/client.c
 test: libs src/test/protocol.test.c
 	gcc $(CFLAGS) -o bin/test/protocol.test obj/protocol.o obj/utils.o src/test/protocol.test.c
 
-run-tests: bin/test/protocol.test
-	./bin/test/protocol.test
-
-docs: doxygen.conf
-	doxygen doxygen.conf
-	make -C doc/latex
-
 clean:
 	rm -v obj/protocol.o obj/utils.o
-	rm -Rv doc/*
 	rm -v bin/server
 	rm -v bin/client
 	rm -v bin/test/*
