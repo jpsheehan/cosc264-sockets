@@ -10,12 +10,13 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <sys/poll.h>
+#include <sys/time.h>
 
 #include "protocol.h"
 #include "server.h"
 #include "utils.h"
 
-struct pollfd sfds[3];
+int socket_fds[3];
 
 int main(int argc, char** argv)
 {
@@ -26,19 +27,21 @@ int main(int argc, char** argv)
         error("server must receive exactly 3 arguments", 1);
     }
 
+    // read the ports into the ports array
     if (!readPorts(argv, ports)) {
         char msg[52] = {0};
         sprintf(msg, "ports must be between %u and %u (inclusive)", MIN_PORT_NO, MAX_PORT_NO);
         error(msg, 1);
     }
 
+    // check that the ports are unique
     if (ports[0] == ports[1] || ports[0] == ports[2] || ports[1] == ports[2]) {
         error("port numbers must be unique", 1);
     }
 
     // handle some signals so that the sockets can shutdown 
-    // signal(SIGINT, handleSignal);
-    // signal(SIGTERM, handleSignal);
+    signal(SIGINT, handleSignal);
+    signal(SIGTERM, handleSignal);
 
     serve(ports);
 
@@ -56,7 +59,7 @@ void handleSignal(int sig)
     printf("Closing sockets...\n");
 
     for (int i = 0; i < 3; i++) {
-        close(sfds[i].fd);
+        close(socket_fds[i]);
     }
 
     exit(0);
@@ -75,22 +78,23 @@ void serve(uint16_t ports[])
     uint8_t buffer[256];
     uint8_t res[RES_PKT_LEN];
     uint16_t reqType;
+    
+    int optval;
+
+    fd_set rfds;
 
     // create three sockets for the three ports
     for (int i = 0; i < 3; i++) {
-    
-        int optval;
 
-        sfds[i].fd = socket(AF_INET, SOCK_DGRAM, 0);
-        sfds[i].events = POLLIN;
+        socket_fds[i] = socket(AF_INET, SOCK_DGRAM, 0);
 
-        if (sfds[i].fd < 0) {
+        if (socket_fds[i] < 0) {
             error("could not create a socket", 2);
         }
 
         // lets us reuse the port after killing the server.
         optval = 1;
-        setsockopt(sfds[i].fd, SOL_SOCKET, SO_REUSEADDR,
+        setsockopt(socket_fds[i], SOL_SOCKET, SO_REUSEADDR,
             (const void *) &optval, sizeof(int));
 
         // fill out the s_addr struct with information about how we want to serve data
@@ -100,14 +104,14 @@ void serve(uint16_t ports[])
         s_addr[i].sin_port = htons(ports[i]);
 
         // attempt to bind to the port number
-        if (bind(sfds[i].fd, (struct sockaddr *) &s_addr[i], sizeof(s_addr[i])) < 0) {
+        if (bind(socket_fds[i], (struct sockaddr *) &s_addr[i], sizeof(s_addr[i])) < 0) {
             error("could not bind to socket", 2);
         }
 
         // print some information and listen
         printf("Listening on port %u for %s requests...\n", ports[i], getLangName(i + 1));
 
-        listen(sfds[i].fd, 5);
+        listen(socket_fds[i], 5);
     
     }
 
@@ -116,19 +120,25 @@ void serve(uint16_t ports[])
         int s_sockfd = -1;
         int langCode = -1;
 
-        // perform the poll
-        int pollResult = poll(sfds, 3, -1);
+        // reset the rfds struct
+        FD_ZERO(&rfds);
+        for (int i = 0; i < 3; i++) {
+            FD_SET(socket_fds[i], &rfds);
+        }
 
-        // if there was an error polling
-        if (pollResult == -1) {
-            error("poll failed", 4);
+        // perform the select
+        int selectResult = select(max(socket_fds, 3) + 1, &rfds, NULL, NULL, NULL);
+
+        // if there was an error selecting
+        if (selectResult == -1) {
+            error("select failed", 4);
         }
 
         // iterate through the pollfd values until one is ready to receive data
         // store the socket descriptor and the language code
         for (int i = 0; i < 3; i++) {
-            if (sfds[i].revents & POLLIN) {
-                s_sockfd = sfds[i].fd;
+            if (FD_ISSET(socket_fds[i], &rfds)) {
+                s_sockfd = socket_fds[i];
                 langCode = i + 1;
                 break;
             }
@@ -194,4 +204,21 @@ bool readPorts(char** argv, uint16_t* ports)
         }
     }
     return true;
+}
+
+/**
+ * Returns the largest value in the array.
+ * 
+ * @param nums The array to iterate through.
+ * @param n The length of the array
+ * */
+int max(int nums[], int n)
+{
+    int largest;
+    for (int i = 0; i < n; i++) {
+        if (i == 0 || nums[i] > largest) {
+            largest = nums[i];
+        }
+    }
+    return largest;
 }
