@@ -20,18 +20,18 @@
  * */
 int main(int argc, char** argv)
 {
-    uint16_t reqType, port;
+    uint16_t request_type, port;
 
     // validate the number of arguments passed in
     if (argc != 4) {
         error("client expects exactly 4 arguments", 1);
     }
 
-    // set the reqType based on the first argument
+    // set the request_type based on the first argument
     if (strcmp(argv[1], "date") == 0) {
-        reqType = REQ_DATE;
+        request_type = REQ_DATE;
     } else if (strcmp(argv[1], "time") == 0) {
-        reqType = REQ_TIME;
+        request_type = REQ_TIME;
     } else {
         error("first argument should be either \"date\" or \"time\"" ,1);
     }
@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     }
 
     // send a request
-    request(reqType, argv[2], port);
+    request(request_type, argv[2], port);
 
     return 0;
 }
@@ -53,19 +53,19 @@ int main(int argc, char** argv)
 /**
  * Sends a request to the server.
  * 
- * @param reqType The type of request, either REQ_DATE or REQ_TIME.
- * @param ip_addr The ip address of the server as a string.
+ * @param request_type The type of request, either REQ_DATE or REQ_TIME.
+ * @param ip_address_string The ip address of the server as a string.
  * @param port The port the server is listening on.
  * */
-void request(uint16_t reqType, char* ip_addr, uint16_t port)
+void request(uint16_t request_type, char* ip_address_string, uint16_t port)
 {
     
     // the address information of the server
-    struct sockaddr_in s_addr;
-    socklen_t s_len = sizeof(s_addr);
+    struct sockaddr_in server_address;
+    socklen_t server_address_len = sizeof(server_address);
 
     // the socket descriptor of the client
-    int c_socket;
+    int client_socket;
 
     // the buffers to hold the raw request and response packets
     uint8_t req[REQ_PKT_LEN] = {0};
@@ -75,10 +75,10 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     struct timeval timeout;
 
     // this is required for select() to work
-    fd_set rfds;
+    fd_set socket_set;
 
     // this is used to test what is returned by select()
-    int selectResult;
+    int select_result;
 
     // set aside some space for the text from the incoming data to be placed
     char text[RES_TEXT_LEN] = {0};
@@ -87,23 +87,23 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     size_t text_len = 0;
 
     // attempt to create the socket
-    c_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    client_socket = socket(AF_INET, SOCK_DGRAM, 0);
 
-    if (c_socket < 0) {
+    if (client_socket < 0) {
         error("could not create socket", 2);
     }
 
     // setup the server address struct
-    memset((char*) &s_addr, 0, s_len);
-    s_addr.sin_family = AF_INET;
-    s_addr.sin_port = htons(port);
+    memset((char*) &server_address, 0, server_address_len);
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(port);
 
-    if (inet_pton(AF_INET, ip_addr, &s_addr.sin_addr) == 0) {
+    if (inet_pton(AF_INET, ip_address_string, &server_address.sin_addr) == 0) {
         error("invalid ip address", 1);
     }
 
     // create the packet
-    if (dtReq(req, REQ_PKT_LEN, reqType) == 0) {
+    if (dtReq(req, REQ_PKT_LEN, request_type) == 0) {
         error("could not create packet", 3);
     }
 
@@ -111,25 +111,25 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    // set the rfds
-    FD_ZERO(&rfds);
-    FD_SET(c_socket, &rfds);
+    // set the socket_set
+    FD_ZERO(&socket_set);
+    FD_SET(client_socket, &socket_set);
 
     // wait for the socket to be writable
-    selectResult = select(c_socket + 1, NULL, &rfds, NULL, &timeout);
+    select_result = select(client_socket + 1, NULL, &socket_set, NULL, &timeout);
 
     // print an error if something went wrong while selecting
-    if (selectResult < 0) {
+    if (select_result < 0) {
         error("could not select", 4);
     }
 
     // print an error if a timeout occurred
-    if (selectResult == 0) {
+    if (select_result == 0) {
         error("select timed out", 4);
     }
 
     // attempt to send the packet
-    if (sendto(c_socket, req, REQ_PKT_LEN, 0, (struct sockaddr *) &s_addr, s_len) < 0) {
+    if (sendto(client_socket, req, REQ_PKT_LEN, 0, (struct sockaddr *) &server_address, server_address_len) < 0) {
         error("could not send packet", 2);
     }
 
@@ -137,30 +137,30 @@ void request(uint16_t reqType, char* ip_addr, uint16_t port)
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
 
-    // set the rfds, this must be set again because select() modifies rfds
-    FD_ZERO(&rfds);
-    FD_SET(c_socket, &rfds);
+    // set the socket_set, this must be set again because select() modifies socket_set
+    FD_ZERO(&socket_set);
+    FD_SET(client_socket, &socket_set);
 
     // Wait for the socket to be readable
-    selectResult = select(c_socket + 1, &rfds, NULL, NULL, &timeout);
+    select_result = select(client_socket + 1, &socket_set, NULL, NULL, &timeout);
 
     // print an error if something went wrong while selecting
-    if (selectResult < 0) {
+    if (select_result < 0) {
         error("could not select", 4);
     }
 
     // print an error if a timeout occurred
-    if (selectResult == 0) {
+    if (select_result == 0) {
         error("select timed out", 4);
     }
 
     // attempt to receive the response
-    if (recvfrom(c_socket, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &s_addr, &s_len) < 0) {
+    if (recvfrom(client_socket, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &server_address, &server_address_len) < 0) {
         error("could not recieve packet", 2);
     }
 
     // close the socket
-    close(c_socket);
+    close(client_socket);
 
     // extract the text, storing it in text and the length in text_len
     dtResText(buffer, dtPktLength(buffer), text, &text_len);
