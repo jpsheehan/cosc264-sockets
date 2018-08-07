@@ -1,16 +1,16 @@
 // server.c
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h>
 #include <signal.h>
-#include <sys/poll.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/time.h>
+#include <unistd.h>
 
 #include "protocol.h"
 #include "server.h"
