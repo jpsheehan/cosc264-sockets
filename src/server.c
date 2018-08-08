@@ -150,7 +150,7 @@ void serve(uint16_t ports[])
         // holds information on which sockets to wait for while selecting
         fd_set socket_set;
 
-        // reset the rfds struct
+        // reset the socket_set struct
         FD_ZERO(&socket_set);
         for (int i = 0; i < 3; i++) {
             FD_SET(socket_fds[i], &socket_set);
