@@ -45,7 +45,7 @@
 
 %%% END Article customizations
 
-\newcommand{\includecode}[1]{\begin{mdframed}\inputminted[linenos=true, breaklines]{c}{#1}\end{mdframed}}
+\newcommand{\includecode}[2][c]{\begin{mdframed}\inputminted[linenos=true, breaklines]{#1}{#2}\end{mdframed}}
 
 \title{COSC 264 Assignment}
 \date{\today}
@@ -59,9 +59,11 @@
 
 \hrulefill
 
-\end{titlepage}
+\tableofcontents
 
-\includepdf{includes/Plagiarism-Declaration.pdf}
+\end{titlepage}
+\setcounter{page}{2}
+\includepdf[addtotoc={1,section,1,Plagiarism Declaration,sec:plag}]{includes/Plagiarism-Declaration.pdf}
 
 \section{Source Code Listings}
 
@@ -87,5 +89,15 @@ Contains functions that pertain only to the server.
 Contains functions that pertain only to the client.
 \includecode{../src/client.h}
 \includecode{../src/client.c}
+
+\newpage
+\subsection{Protocol Testing}
+Contains functions that test the integrity of the protocol functions.
+\includecode{../src/test/protocol.test.c}
+
+\newpage
+\subsection{Makefile}
+Used to build the aforementioned source listings.
+\includecode[make]{../Makefile}
 
 \end{document}
