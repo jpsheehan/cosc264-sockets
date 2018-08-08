@@ -11,9 +11,9 @@
  * @param funcname The name of the function where the error occurred.
  * @param condition A description of what failed.
  * */
-void fail(char funcname[], char condition[])
+void fail(char function_name[], char condition[])
 {
-    fprintf(stderr, "Failure: %s - %s\n", funcname, condition);
+    fprintf(stderr, "Failure: %s - %s\n", function_name, condition);
 }
 
 /**
@@ -32,20 +32,22 @@ void error(char message[], int code)
  * Returns the current time string without a newline character
  * @return A pointer to the datetime string.
  * */
-char* getCurrentTimeString()
+void printCurrentDateTimeString()
 {
+    // used to store the time
     time_t rawtime;
     struct tm* info;
 
+    // used to store the string
+    char str[32] = {0};
+    
+    // get the local time
     time(&rawtime);
-
     info = localtime(&rawtime);
-    char* str = asctime(info);
 
-    // set the newline character to zero
-    str[strlen(str) - 1] = 0;
-
-    return str;
+    // format and print the date time string
+    strftime(str, 32, "%F %H:%I", info);
+    printf("%s", str);
 }
 
 /**

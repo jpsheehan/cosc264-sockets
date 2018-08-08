@@ -188,7 +188,8 @@ void serve(uint16_t ports[])
         inet_ntop(AF_INET, &client_addr.sin_addr, client_ip_address_string, INET_ADDRSTRLEN);
 
         // print the date, time and the ip address of the client
-        printf("%s - %s - ", getCurrentTimeString(), client_ip_address_string);
+        printCurrentDateTimeString();
+        printf(" - %s - ", client_ip_address_string);
 
         // if an error occurred during reading the information, print an error
         if (bytes_received < 0) {
