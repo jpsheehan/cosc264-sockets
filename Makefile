@@ -1,3 +1,5 @@
+# Makefile
+
 CFLAGS = -std=c99 -Werror -Wall -I ./src/
 
 all: libs server client
@@ -15,8 +17,12 @@ client: libs src/client.c
 test: libs src/test/protocol.test.c
 	gcc $(CFLAGS) -o bin/test/protocol.test obj/protocol.o obj/utils.o src/test/protocol.test.c
 
+pdf:
+	cd report; pdflatex --shell-escape -undump=pdflatex report.tex
+
 clean:
 	rm -v obj/protocol.o obj/utils.o
 	rm -v bin/server
 	rm -v bin/client
 	rm -v bin/test/*
+	rm report/report.pdf
