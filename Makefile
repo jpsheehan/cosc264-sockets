@@ -1,6 +1,6 @@
 # Makefile
 
-CFLAGS = -std=c99 -Werror -Wall -I ./src/
+CFLAGS = -std=gnu99 -Werror -Wall -I ./src/
 
 all: libs server client
 

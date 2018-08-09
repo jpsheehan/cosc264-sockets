@@ -1,6 +1,7 @@
 // client.c
 
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -8,6 +9,7 @@
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -45,7 +47,7 @@ int main(int argc, char** argv)
     }
 
     // send a request
-    request(request_type, argv[2], port);
+    request(request_type, argv[2], argv[3]);
 
     return 0;
 }
@@ -57,12 +59,12 @@ int main(int argc, char** argv)
  * @param ip_address_string The ip address of the server as a string.
  * @param port The port the server is listening on.
  * */
-void request(uint16_t request_type, char* ip_address_string, uint16_t port)
+void request(uint16_t request_type, char* ip_address_string, char* port_string)
 {
     
     // the address information of the server
-    struct sockaddr_in server_address;
-    socklen_t server_address_len = sizeof(server_address);
+    // struct sockaddr_in server_address;
+    socklen_t server_address_len;
 
     // the socket descriptor of the client
     int client_socket;
@@ -86,21 +88,54 @@ void request(uint16_t request_type, char* ip_address_string, uint16_t port)
     // denotes the length of the text received.
     size_t text_len = 0;
 
-    // attempt to create the socket
-    client_socket = socket(AF_INET, SOCK_DGRAM, 0);
+    // holds the server address hints
+    struct addrinfo hints;
+    
+    // a pointer to all the addresses returned by getaddrinfo
+    struct addrinfo *addresses;
 
-    if (client_socket < 0) {
-        error("could not create socket", 2);
+    // a pointer to the current address used as the server address
+    struct addrinfo *server_address;
+
+    // setup the hints data structure
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_DGRAM;
+
+    // get the address info
+    if (getaddrinfo(ip_address_string, port_string, &hints, &addresses) != 0) {
+        error("bad hostname or ip address", 1);
+    }
+    
+    // iterate over every possible server address returned by getaddrinfo
+    // and select the first one that we can connect to
+    for (server_address = addresses; server_address != NULL; server_address = server_address->ai_next) {
+
+        // create a socket
+        client_socket = socket(server_address->ai_family,
+            server_address->ai_socktype, server_address->ai_protocol);
+
+        // if it is no good, get another one
+        if (client_socket < 0) {
+            continue;
+        }
+
+        // attempt to connect to the server, if this works, break
+        if (connect(client_socket, server_address->ai_addr,
+            server_address->ai_addrlen) == 0) {
+            break;
+        }
+
+        // close this socket and get another one
+        close(client_socket);
     }
 
-    // setup the server address struct
-    memset((char*) &server_address, 0, server_address_len);
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(port);
-
-    if (inet_pton(AF_INET, ip_address_string, &server_address.sin_addr) == 0) {
-        error("invalid ip address", 1);
+    // display an error if we could not connect to the server
+    if (server_address == NULL) {
+        error("could not connect", 1);
     }
+
+    server_address_len = sizeof(server_address);
 
     // create the packet
     if (dtReq(req, REQ_PKT_LEN, request_type) == 0) {
@@ -129,7 +164,7 @@ void request(uint16_t request_type, char* ip_address_string, uint16_t port)
     }
 
     // attempt to send the packet
-    if (sendto(client_socket, req, REQ_PKT_LEN, 0, (struct sockaddr *) &server_address, server_address_len) < 0) {
+    if (sendto(client_socket, req, REQ_PKT_LEN, 0, (struct sockaddr *) server_address->ai_addr, server_address->ai_addrlen) < 0) {
         error("could not send packet", 2);
     }
 
@@ -158,6 +193,9 @@ void request(uint16_t request_type, char* ip_address_string, uint16_t port)
     if (recvfrom(client_socket, buffer, RES_PKT_LEN, 0, (struct sockaddr *) &server_address, &server_address_len) < 0) {
         error("could not recieve packet", 2);
     }
+
+    // free the memory used by getaddrinfo
+    freeaddrinfo(addresses);
 
     // close the socket
     close(client_socket);
