@@ -30,6 +30,7 @@
 \usepackage{pdfpages}
 \usepackage{minted}
 \usepackage{mdframed}
+\renewcommand{\abstractname}{\vspace{-\baselineskip}}
 
 %%% HEADERS & FOOTERS
 \usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
@@ -58,6 +59,28 @@
 \maketitle
 
 \hrulefill
+
+\begin{abstract}
+I decided to use C in this assignment so I could practice it for ENCE260. Also I think it's a bit more fun to program in C.
+
+Towards the end of the assignment I became aware of C's struct and enum language features. If I were to redo this project I would use structs to represent the DT-Request and DT-Response packets and enums to represent things like language codes, packet request type, etc.
+
+I have been very liberal in the use of comments and have used Javadoc-style comments for providing more information about functions. This, unfortunately, makes the source code quite a long read (table \ref{tab:1}).
+
+\begin{table}[H]
+	\centering
+  \begin{tabular}{ |l|r|r|r|r| }
+	\hline
+	Language & Files & Blank & Comment & Code \\ \hline
+	C & 5 & 239 & 386 & 766 \\
+	C Header & 4 & 22 & 10 & 60 \\ \hline \hline
+	Total & 9 & 261 & 396 & 826 \\ \hline
+  \end{tabular}
+  \caption{A lines-of-code breakdown of the C source.}
+  \label{tab:1}
+\end{table}
+
+\end{abstract}
 
 \tableofcontents
 
