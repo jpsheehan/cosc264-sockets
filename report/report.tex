@@ -29,6 +29,15 @@
 % These packages are all incorporated in the memoir class to one degree or another...
 \usepackage{pdfpages}
 \usepackage{minted}
+\usepackage{geometry}
+\geometry{
+  top=0.5in,            % <-- you want to adjust this
+  inner=0.5in,
+  outer=0.5in,
+  bottom=0.5in,
+  headheight=3ex,       % <-- and this
+  headsep=2ex,          % <-- and this
+}
 \usepackage{mdframed}
 \renewcommand{\abstractname}{\vspace{-\baselineskip}}
 
@@ -72,9 +81,9 @@ I have been very liberal in the use of comments and have used Javadoc-style comm
   \begin{tabular}{ |l|r|r|r|r| }
 	\hline
 	Language & Files & Blank & Comment & Code \\ \hline
-	C & 5 & 239 & 386 & 766 \\
+	C & 5 & 240 & 387 & 775 \\
 	C Header & 4 & 22 & 10 & 60 \\ \hline \hline
-	Total & 9 & 261 & 396 & 826 \\ \hline
+	Total & 9 & 262 & 397 & 835 \\ \hline
   \end{tabular}
   \caption{A lines-of-code breakdown of the C source.}
   \label{tab:1}
