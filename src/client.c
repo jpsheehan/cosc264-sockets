@@ -203,7 +203,18 @@ void request(uint16_t request_type, char* ip_address_string, char* port_string)
     // extract the text, storing it in text and the length in text_len
     dtResText(buffer, dtPktLength(buffer), text, &text_len);
 
-    // print the response
-    printf("%s\n", text);
+    // print the other information
+    printf("MagicNo:\t0x%04X\n", dtPktMagicNo(buffer, RES_PKT_LEN));
+    printf("PacketType:\t%u\n", dtPktType(buffer, RES_PKT_LEN));
+    printf("LanguageCode:\t%u\n", dtResLangCode(buffer, RES_PKT_LEN));
+    printf("Year:\t\t%u\n", dtResYear(buffer, RES_PKT_LEN));
+    printf("Month:\t\t%u\n", dtResMonth(buffer, RES_PKT_LEN));
+    printf("Day:\t\t%u\n", dtResDay(buffer, RES_PKT_LEN));
+    printf("Hour:\t\t%u\n", dtResHour(buffer, RES_PKT_LEN));
+    printf("Minute:\t\t%u\n", dtResMinute(buffer, RES_PKT_LEN));
+    printf("Length:\t\t%u\n", dtResLength(buffer, RES_PKT_LEN));
+
+    // print the text response
+    printf("Text:\t\t%s\n", text);
 
 }
