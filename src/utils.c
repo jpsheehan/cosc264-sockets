@@ -46,7 +46,7 @@ void printCurrentDateTimeString()
     info = localtime(&rawtime);
 
     // format and print the date time string
-    strftime(str, 32, "%F %H:%I", info);
+    strftime(str, 32, "%F %H:%M:%S", info);
     printf("%s", str);
 }
 
